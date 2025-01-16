@@ -1,62 +1,175 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proxy with Search Feature</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-        }
-        .button {
-            padding: 15px 25px;
-            font-size: 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            margin: 10px;
-        }
-        #searchInput {
-            margin-top: 20px;
-            padding: 10px;
-            width: 300px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2D Minecraft Plains</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #87ceeb;
+      font-family: Arial, sans-serif;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background-color: #87ceeb;
+    }
+    #toolbar {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 10px;
+      border-radius: 10px;
+    }
+    .tool {
+      width: 50px;
+      height: 50px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #ddd;
+      border: 2px solid #555;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .tool.selected {
+      background: #aaa;
+      border-color: #000;
+    }
+  </style>
 </head>
 <body>
+  <canvas id="gameCanvas"></canvas>
+  <div id="toolbar">
+    <div class="tool selected" data-type="grass">🌱</div>
+    <div class="tool" data-type="dirt">🌍</div>
+    <div class="tool" data-type="stone">⛏️</div>
+  </div>
 
-    <h1>Proxy with Search Feature</h1>
-    
-    <!-- Button to open about:blank -->
-    <button class="button" onclick="openBlankWindow()">Open Blank Window</button>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
 
-    <div style="margin-top: 20px;">
-        <!-- Search bar to open a new tab with a search query -->
-        <input type="text" id="searchInput" placeholder="Search something..." />
-        <button class="button" onclick="search()">Search</button>
-    </div>
+    // Set canvas dimensions
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 
-    <script>
-        // Open a new about:blank window when the button is clicked
-        function openBlankWindow() {
-            window.open('about:blank', '_blank');
+    // Block settings
+    const blockSize = 40;
+    const viewWidth = Math.ceil(canvas.width / blockSize);
+    const viewHeight = Math.ceil(canvas.height / blockSize);
+
+    // Player settings
+    const player = {
+      x: 10,
+      y: 10,
+      width: blockSize,
+      height: blockSize,
+      color: "blue",
+      dx: 0,
+      dy: 0,
+    };
+
+    // World generation
+    const world = {};
+    const generateColumn = (x) => {
+      if (!world[x]) {
+        const groundHeight = Math.floor(viewHeight / 2) + Math.floor(Math.random() * 3 - 1);
+        world[x] = Array(viewHeight).fill(null).map((_, y) => {
+          if (y > groundHeight) return "stone";
+          if (y === groundHeight) return "grass";
+          if (y > groundHeight - 3) return "dirt";
+          return null;
+        });
+      }
+    };
+
+    // Fill initial world
+    for (let x = 0; x < viewWidth; x++) {
+      generateColumn(x);
+    }
+
+    // Render world
+    const renderWorld = () => {
+      const offsetX = Math.floor(player.x) - Math.floor(viewWidth / 2);
+      for (let x = 0; x < viewWidth; x++) {
+        generateColumn(x + offsetX);
+        for (let y = 0; y < viewHeight; y++) {
+          const blockType = world[x + offsetX]?.[y];
+          if (blockType) {
+            ctx.fillStyle = blockType === "grass" ? "#228B22" :
+                            blockType === "dirt" ? "#8B4513" :
+                            "#808080";
+            ctx.fillRect(x * blockSize, y * blockSize, blockSize, blockSize);
+          }
         }
+      }
+    };
 
-        // Perform a search and open a new tab with search results
-        function search() {
-            const query = document.getElementById('searchInput').value;
-            if (query.trim() !== '') {
-                const searchURL = 'https://www.google.com/search?q=' + encodeURIComponent(query);
-                window.open(searchURL, '_blank');
-            } else {
-                alert('Please enter a search query!');
-            }
-        }
-    </script>
+    // Render player
+    const renderPlayer = () => {
+      ctx.fillStyle = player.color;
+      ctx.fillRect(
+        canvas.width / 2 - player.width / 2,
+        player.y * blockSize,
+        player.width,
+        player.height
+      );
+    };
 
+    // Game loop
+    const update = () => {
+      player.x += player.dx;
+      player.y += player.dy;
+
+      // Prevent falling through the world
+      const belowBlock = world[Math.floor(player.x)]?.[Math.floor(player.y) + 1];
+      if (!belowBlock && player.dy === 0) {
+        player.dy = 0.1; // Simulate gravity
+      } else if (belowBlock) {
+        player.dy = 0; // Stop falling
+        player.y = Math.floor(player.y); // Align to block
+      }
+    };
+
+    const render = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      renderWorld();
+      renderPlayer();
+    };
+
+    const gameLoop = () => {
+      update();
+      render();
+      requestAnimationFrame(gameLoop);
+    };
+
+    // Controls
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft" || e.key === "a") {
+        player.dx = -0.1;
+      } else if (e.key === "ArrowRight" || e.key === "d") {
+        player.dx = 0.1;
+      } else if (e.key === " " && player.dy === 0) {
+        player.dy = -0.3; // Jump
+      }
+    });
+
+    document.addEventListener("keyup", (e) => {
+      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "ArrowRight" || e.key === "d") {
+        player.dx = 0;
+      }
+    });
+
+    // Start game loop
+    gameLoop();
+  </script>
 </body>
 </html>
