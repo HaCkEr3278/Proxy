@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proxy with Search Feature</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        .button {
+            padding: 15px 25px;
+            font-size: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 10px;
+        }
+        #searchInput {
+            margin-top: 20px;
+            padding: 10px;
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Proxy with Search Feature</h1>
+    
+    <!-- Button to open about:blank -->
+    <button class="button" onclick="openBlankWindow()">Open Blank Window</button>
+
+    <div style="margin-top: 20px;">
+        <!-- Search bar to open a new tab with a search query -->
+        <input type="text" id="searchInput" placeholder="Search something..." />
+        <button class="button" onclick="search()">Search</button>
+    </div>
+
+    <script>
+        // Open a new about:blank window when the button is clicked
+        function openBlankWindow() {
+            window.open('about:blank', '_blank');
+        }
+
+        // Perform a search and open a new tab with search results
+        function search() {
+            const query = document.getElementById('searchInput').value;
+            if (query.trim() !== '') {
+                const searchURL = 'https://www.google.com/search?q=' + encodeURIComponent(query);
+                window.open(searchURL, '_blank');
+            } else {
+                alert('Please enter a search query!');
+            }
+        }
+    </script>
+
+</body>
+</html>
