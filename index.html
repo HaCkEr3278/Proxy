@@ -1,0 +1,105 @@
+import random
+
+def create_character():
+    return {
+        "name": input("Enter your character's name: "),
+        "class": input("Choose your class (e.g., Warrior, Mage, Rogue): "),
+        "inventory": [],
+        "health": 100,
+    }
+
+def random_spawn():
+    locations = ["a dark forest", "a bustling city", "a desolate desert", "a snowy mountain", "an abandoned castle"]
+    return random.choice(locations)
+
+def display_inventory(inventory):
+    if inventory:
+        print("Your inventory contains:")
+        for item in inventory:
+            print(f"- {item}")
+    else:
+        print("Your inventory is empty.")
+
+def encounter_event(character):
+    events = [
+        "You find a treasure chest!",
+        "A wild beast appears!",
+        "You meet a mysterious traveler.",
+        "You stumble upon an ancient artifact.",
+        "You fall into a hidden trap!"
+    ]
+    event = random.choice(events)
+    print(event)
+
+    if event == "You find a treasure chest!":
+        loot = random.choice(["gold coins", "a magical potion", "a rare gemstone"])
+        print(f"Inside, you find {loot}!")
+        character["inventory"].append(loot)
+
+    elif event == "A wild beast appears!":
+        action = input("Do you fight (f) or run (r)? ").lower()
+        if action == "f":
+            outcome = random.choice(["win", "lose"])
+            if outcome == "win":
+                print("You defeated the beast and found a claw as a trophy.")
+                character["inventory"].append("beast claw")
+            else:
+                damage = random.randint(10, 30)
+                character["health"] -= damage
+                print(f"You lost the fight and took {damage} damage. Your health is now {character['health']}")
+        else:
+            print("You successfully escaped but found nothing.")
+
+    elif event == "You meet a mysterious traveler.":
+        trade = input("Do you trade with the traveler (y/n)? ").lower()
+        if trade == "y":
+            item = random.choice(["a map", "a rare herb", "an enchanted ring"])
+            print(f"The traveler gives you {item} in exchange for a favor.")
+            character["inventory"].append(item)
+        else:
+            print("The traveler walks away.")
+
+    elif event == "You stumble upon an ancient artifact.":
+        artifact = random.choice(["a glowing sword", "a mystical staff", "a shield of light"])
+        print(f"You discover {artifact}. It feels powerful!")
+        character["inventory"].append(artifact)
+
+    elif event == "You fall into a hidden trap!":
+        damage = random.randint(5, 20)
+        character["health"] -= damage
+        print(f"You took {damage} damage. Your health is now {character['health']}.")
+
+def main():
+    print("Welcome to the DnD Adventure Game!")
+    character = create_character()
+    spawn_location = random_spawn()
+    print(f"You spawn in {spawn_location}.")
+
+    while character["health"] > 0:
+        print("\nWhat would you like to do?")
+        print("1. Check inventory")
+        print("2. Explore")
+        print("3. Rest")
+        print("4. Exit game")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            display_inventory(character["inventory"])
+        elif choice == "2":
+            encounter_event(character)
+        elif choice == "3":
+            heal = random.randint(10, 25)
+            character["health"] = min(100, character["health"] + heal)
+            print(f"You rested and regained {heal} health. Your health is now {character['health']}.")
+        elif choice == "4":
+            print("Thank you for playing!")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+        if character["health"] <= 0:
+            print("You have perished. Game over.")
+
+if __name__ == "__main__":
+    main()
